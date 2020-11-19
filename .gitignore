@@ -1,6 +1,10 @@
 .idea
 __pycache__
 Dataset/*
+!Dataset/README.md
 Output/*
+!Output/README.md
 ProcessedData/*
+!ProcessedData/README.md
 TrainedModels/*
+!TrainedModels/README.md
