@@ -13,16 +13,31 @@ parser.add_argument("--output_name", type=str, default='Freddy-Output')
 parser.add_argument("--load_data", type=bool, default=True)
 
 # Train the Spectral model
-parser.add_argument("--sp_train", type=bool, default=False)
+parser.add_argument("--sp_train", type=bool, default=True)
 
 # Continue training existing Spectral model (only applies if above is true)
-parser.add_argument("--sp_cont", type=bool, default=False)
+parser.add_argument("--sp_cont", type=bool, default=True)
+
+# Use harmonic model during inference
+parser.add_argument("--sp_use", type=bool, default=True)
 
 # Train the Aperiodic model
 parser.add_argument("--ap_train", type=bool, default=False)
 
 # Continue training existing Aperiodic model (only applies if above is true)
 parser.add_argument("--ap_cont", type=bool, default=False)
+
+# Use aperiodic model during inference
+parser.add_argument("--ap_use", type=bool, default=True)
+
+# Train the frequency model
+parser.add_argument("--f_train", type=bool, default=False)
+
+# Continue training existing Aperiodic model (only applies if above is true)
+parser.add_argument("--f_cont", type=bool, default=True)
+
+# Use pitch model during inference
+parser.add_argument("--f_use", type=bool, default=True)
 
 
 # ************************************************************* #
@@ -99,12 +114,13 @@ h_parser.add_argument("--blocks", type=int, default=2)
 h_parser.add_argument("--dil_chan", type=int, default=130)
 h_parser.add_argument("--res_chan", type=int, default=130)
 h_parser.add_argument("--skip_chan", type=int, default=240)
+h_parser.add_argument("--out_chan", type=int, default=240)
 h_parser.add_argument("--output_chan", type=int, default=60)
 h_parser.add_argument("--init_kernel", type=int, default=10)
 h_parser.add_argument("--kernel", type=int, default=2)
-h_parser.add_argument("--epochs", type=int, default=300)
+h_parser.add_argument("--epochs", type=int, default=1000)
 h_parser.add_argument("--l2_decay", type=float, default=0.00005)
-h_parser.add_argument("--learn_rate", type=float, default=0.000001)
+h_parser.add_argument("--learn_rate", type=float, default=0.00005)
 h_parser.add_argument("--temp", type=float, default=0.05)
 h_parser.add_argument("--kernel_init", type=str, default="glorot_uniform")
 
@@ -117,10 +133,28 @@ a_parser.add_argument("--blocks", type=int, default=2)
 a_parser.add_argument("--dil_chan", type=int, default=20)
 a_parser.add_argument("--res_chan", type=int, default=20)
 a_parser.add_argument("--skip_chan", type=int, default=16)
+a_parser.add_argument("--out_chan", type=int, default=16)
 a_parser.add_argument("--init_kernel", type=int, default=10)
 a_parser.add_argument("--kernel", type=int, default=2)
-a_parser.add_argument("--epochs", type=int, default=150)
+a_parser.add_argument("--epochs", type=int, default=250)
 a_parser.add_argument("--l2_decay", type=float, default=0.00005)
 a_parser.add_argument("--learn_rate", type=float, default=0.000001)
 a_parser.add_argument("--temp", type=float, default=0.01)
 a_parser.add_argument("--kernel_init", type=str, default="glorot_uniform")
+
+# ******************* Frequency model ****************** #
+f_parser = argparse.ArgumentParser()
+f_parser.add_argument("--start_pad", type=int, default=19)
+f_parser.add_argument("--levels", type=int, default=7)
+f_parser.add_argument("--blocks", type=int, default=2)
+f_parser.add_argument("--dil_chan", type=int, default=100)
+f_parser.add_argument("--res_chan", type=int, default=100)
+f_parser.add_argument("--skip_chan", type=int, default=100)
+f_parser.add_argument("--out_chan", type=int, default=4)
+f_parser.add_argument("--init_kernel", type=int, default=20)
+f_parser.add_argument("--kernel", type=int, default=2)
+f_parser.add_argument("--epochs", type=int, default=300)
+f_parser.add_argument("--l2_decay", type=float, default=0.00005)
+f_parser.add_argument("--learn_rate", type=float, default=0.000001)
+f_parser.add_argument("--temp", type=float, default=0.01)
+f_parser.add_argument("--kernel_init", type=str, default="glorot_uniform")

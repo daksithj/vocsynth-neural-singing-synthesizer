@@ -19,11 +19,14 @@ class SingingModel:
     def __init__(self,
                  spectral_data,
                  aperiodic_data,
+                 frequency_data,
                  label_data,
                  cutoff_points,
                  name):
 
         self.harmonic_data_set = HarmonicDataSet(spectral_data, aperiodic_data, label_data, cutoff_points)
+
+        self.frequency_data_set = frequency_data
 
         self.name = name
 
@@ -73,6 +76,7 @@ class SingingModel:
         dil_chan = m_params.dil_chan
         res_chan = m_params.res_chan
         skip_chan = m_params.skip_chan
+        out_chan = m_params.out_chan
         initial_kernel = m_params.init_kernel
         kernel_size = m_params.kernel
         l2_decay = m_params.l2_decay
@@ -146,7 +150,7 @@ class SingingModel:
 
         x = Activation("tanh", name='output')(x)
 
-        x = Conv1D(skip_chan, 1, use_bias=True, kernel_initializer=kernel_init, name='final-output',
+        x = Conv1D(out_chan, 1, use_bias=True, kernel_initializer=kernel_init, name='final-output',
                    kernel_regularizer=l2(l2_decay))(x)
 
         network = Model([input_layer, label_input], x)
@@ -161,12 +165,18 @@ class SingingModel:
 
         data_handler = self.harmonic_data_set.set_type(model_type)
 
+        if model_type == 2:
+            data_handler = self.frequency_data_set
+
         if model_type == 0:
             m_params = args.h_parser.parse_args()
             model_loc = self.model_path + '/harmonic_model.h5'
-        else:
+        elif model_type == 1:
             m_params = args.a_parser.parse_args()
             model_loc = self.model_path + '/aperiodic_model.h5'
+        else:
+            m_params = args.f_parser.parse_args()
+            model_loc = self.model_path + '/frequency_model.h5'
 
         if epochs == 0:
             epochs = m_params.epochs
@@ -176,7 +186,7 @@ class SingingModel:
             load = False
 
         if load:
-            model = load_model(model_loc)
+            model = load_model(model_loc, custom_objects={'network_loss': network_loss})
             print('Successfully loaded :' + model_loc + "\n Continuing training...")
         else:
             model = self.build_model(data_handler, m_params)
@@ -198,9 +208,12 @@ class SingingModel:
         if model_type == 0:
             model_loc = self.model_path + '/harmonic_model.h5'
             temp = args.h_parser.parse_args().temp
-        else:
+        elif model_type == 1:
             model_loc = self.model_path + '/aperiodic_model.h5'
             temp = args.a_parser.parse_args().temp
+        else:
+            model_loc = self.model_path + '/frequency_model.h5'
+            temp = args.f_parser.parse_args().temp
 
         if not os.path.isfile(model_loc):
             sys.exit('Cannot find model :' + model_loc)
@@ -217,8 +230,10 @@ class SingingModel:
 
         if model_type == 0:
             m_params = args.h_parser.parse_args()
-        else:
+        elif model_type == 1:
             m_params = args.a_parser.parse_args()
+        else:
+            m_params = args.f_parser.parse_args()
 
         receptive_field = 1
 
@@ -246,9 +261,12 @@ class SingingModel:
         init_channels = args.parser.parse_args().mcep_order
         if model_type == 0:
             channels = init_channels
-        else:
+        elif model_type == 1:
             channels = args.parser.parse_args().ap_channels
             init_channels += channels
+        else:
+            channels = 1
+            init_channels = 1
 
         audio_length = label_data.shape[0]
         model_input = np.zeros((1, 1, init_channels))

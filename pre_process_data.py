@@ -53,7 +53,7 @@ def code_data(spectral_data, aperiodic_data, directory):
 
 def process_and_save(data, vocal_name, save=True):
 
-    spectral_data, aperiodic_data, label_data, cutoff_points = data
+    spectral_data, aperiodic_data, label_data, cutoff_points, frequency = data
 
     directory = params.training_dir + '/' + vocal_name + '/'
     if not os.path.isdir(directory):
@@ -86,9 +86,10 @@ def process_and_save(data, vocal_name, save=True):
     if save:
         np.save(directory + "spectral_data.npy", spectral_data, allow_pickle=True)
         np.save(directory + "aperiodic_data.npy", aperiodic_data, allow_pickle=True)
+        np.save(directory + "frequency.npy", frequency, allow_pickle=True)
         np.save(directory + "cutoff_points.npy", cutoff_points, allow_pickle=True)
 
-    return spectral_data, aperiodic_data, label_data, column_list
+    return spectral_data, aperiodic_data, label_data, column_list, frequency
 
 
 def match_input_columns(column_list, test_label_data):
