@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy as np
 import pandas as pd
 import pickle as pkl
@@ -55,9 +54,12 @@ def process_and_save(data, vocal_name, save=True):
 
     spectral_data, aperiodic_data, label_data, cutoff_points, frequency = data
 
-    directory = params.training_dir + '/' + vocal_name + '/'
+    directory = params.training_dir + '/' + vocal_name
+
     if not os.path.isdir(directory):
-        sys.exit("The selected trained model data in :" + directory + " does not exist!")
+        os.mkdir(directory)
+
+    directory += '/'
 
     label_data, column_list = categorize_data(label_data)
 

@@ -95,7 +95,6 @@ parser.add_argument("--reverb", type=int, default=30)
 parser.add_argument("--fft_size", type=int, default=2048)
 
 
-
 # **** Directories ***** #
 
 # Directory of the training data

@@ -116,6 +116,7 @@ class HarmonicDataSet(Sequence):
             print("Invalid model type. Using model type: " + str(self.model_type))
         return self
 
+
 class FrequencyDataSet(Sequence):
 
     def __init__(self,
@@ -222,7 +223,7 @@ class FrequencyDataSet(Sequence):
             f_shift = p_shift / 12
             frequency_data = frequency_data * pow(2, f_shift)
 
-        note_data = np.append(note_data, [[[-1, -1, -1]]], axis =1)
+        note_data = np.append(note_data, [[[-1, -1, -1]]], axis=1)
         for i in range(self.min_p, self.max_p + 1):
             note_data = np.append(note_data, [[[i, i, i]]], axis=1)
 
@@ -246,23 +247,38 @@ class FrequencyDataSet(Sequence):
 
     @staticmethod
     def extract_notes(f_data):
-        A4 = 440
-        C0 = A4 * pow(2, -4.75)
-        min = 1000
-        max = -1
+        a_4 = 440
+        c_0 = a_4 * pow(2, -4.75)
+        min_freq = 1000
+        max_freq = -1
         notes = []
         for freq in f_data:
             if freq > 0:
-                h = round(12 * log2(freq / C0))
+                h = round(12 * log2(freq / c_0))
                 notes.append(h)
-                if h > max:
-                    max = h
-                if h < min:
-                    min = h
+                if h > max_freq:
+                    max_freq = h
+                if h < min_freq:
+                    min_freq = h
             else:
                 notes.append(-1)
         notes = np.asarray(notes)
-        return notes, min, max
+        return notes, min_freq, max_freq
+
+    @staticmethod
+    def notes_to_number(n_data):
+
+        keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+        notes = []
+
+        for key in n_data:
+            if key == 'N':
+                notes.append(-1)
+            else:
+                key = list(key)
+                notes.append(int(key[1])*12 + keys.index(key[0]))
+
+        return notes
 
     @staticmethod
     def get_note_data(notes):
@@ -302,7 +318,7 @@ class FrequencyDataSet(Sequence):
                 post_note_array.append(-1)
 
         notes = np.asarray(notes)
-        notes = np.expand_dims(notes, axis =1)
+        notes = np.expand_dims(notes, axis=1)
         pre_note_array = np.asarray(pre_note_array)
         pre_note_array = np.expand_dims(pre_note_array, axis=1)
         post_note_array = np.asarray(post_note_array)

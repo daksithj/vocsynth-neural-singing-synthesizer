@@ -38,13 +38,14 @@ def decode_envelopes(spectral_coded, aperiodic_coded, sample_rate, vocal_name):
     return spectral_env, aperiodic_env
 
 
-def noise_remover(file_name):
+def noise_remover(file_name, reverb):
     audio_data, sample_rate = soundfile.read(file_name)
     noise_part = audio_data[-sample_rate:]
     clean_audio = nr.reduce_noise(audio_data, noise_part, n_grad_freq=params.n_grad_freq,
                                   n_std_thresh=params.n_std_thresh, n_grad_time=params.n_grad_time)
 
-    reverb = params.reverb
+    if reverb is None:
+        reverb = params.reverb
 
     if reverb > 0:
         fx = AudioEffectsChain().reverb(reverberance=reverb)
@@ -53,7 +54,7 @@ def noise_remover(file_name):
     soundfile.write(file_name, clean_audio, sample_rate)
 
 
-def construct_audio(spectral_data, aperiodic_data, frequency, file_name):
+def construct_audio(spectral_data, aperiodic_data, frequency, file_name, reverb=None):
     output_dir = params.output_dir
 
     if not os.path.isdir(output_dir + '/'):
@@ -64,4 +65,4 @@ def construct_audio(spectral_data, aperiodic_data, frequency, file_name):
     file_name = output_dir + '/' + file_name + ".wav"
     soundfile.write(file_name, audio_data, params.sample_rate)
 
-    noise_remover(file_name)
+    noise_remover(file_name, reverb)

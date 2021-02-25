@@ -30,7 +30,12 @@ if __name__ == '__main__':
     f_cont = params.f_cont
     f_use = params.f_use
 
-    spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_training_data(model_name, load=load_data)
+    data_dir = params.data_dir + '/' + model_name
+    training_dir = params.training_dir
+
+    spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_training_data(data_dir,
+                                                                                             model_name,
+                                                                                             load=load_data)
 
     f_data = FrequencyDataSet(frequency, label_data, cutoff_points)
 
@@ -44,8 +49,6 @@ if __name__ == '__main__':
 
     if ap_train:
         singing_model.train_model(APERIODIC_MODE, ap_cont)
-
-    f_data = FrequencyDataSet(frequency, label_data, cutoff_points)
 
     label_data, f_label_data, frequency = read_test_data(model_name, f_data)
 

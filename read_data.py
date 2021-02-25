@@ -40,9 +40,14 @@ def pre_process(file_name, training_dir):
     return [spectral_data, aperiodic_data, label_data, frequency]
 
 
-def extract_f_labels(frequency, f_data, label_data):
+def extract_f_labels(frequency, f_data, label_data, note_file=None):
 
-    notes, _, _ = f_data.extract_notes(frequency)
+    if note_file is None:
+        notes, _, _ = f_data.extract_notes(frequency)
+    else:
+        notes = read_notes(note_file, label_data.shape[0])
+        notes = f_data.notes_to_number(notes)
+        notes = np.asarray(notes)
 
     notes, note_timings = f_data.get_note_data(notes)
 
@@ -57,10 +62,10 @@ def extract_f_labels(frequency, f_data, label_data):
     return f_label_data
 
 # Identify the training data
-def extract_transcripts(vocal_name):
+def extract_transcripts(data_dir, index_name="index.xlsx"):
 
-    training_dir = params.data_dir + '/' + vocal_name + '/'
-    index_file_location = training_dir + "index.xlsx"
+    training_dir = data_dir + '/'
+    index_file_location = training_dir + index_name
 
     transcript_location = training_dir + 'Transcripts/'
     if not os.path.isdir(transcript_location):
@@ -98,8 +103,8 @@ def load_training_data(vocal_name):
     return spectral_data, aperiodic_data, label_data, cutoff_points, frequency
 
 
-def read_data(vocal_name):
-    file_list, training_dir = extract_transcripts(vocal_name)
+def read_data(data_dir, index_name="index.xlsx", gui_screen=None):
+    file_list, training_dir = extract_transcripts(data_dir, index_name)
 
     spectral_data = pd.DataFrame()
     aperiodic_data = pd.DataFrame()
@@ -107,7 +112,14 @@ def read_data(vocal_name):
     cutoff_points = []
     frequency = []
 
+    file_count = 0
+    total_files = len(file_list)
+
     for file in file_list:
+
+        if gui_screen is not None:
+            gui_screen.ids.dataset_progress_file.text = f'Processing file: {file}.wav'
+
         read_spectral_data, read_aperiodic_data, read_label_data, read_frequency = pre_process(file, training_dir)
 
         spectral_data = pd.concat([spectral_data, read_spectral_data], axis=0, ignore_index=True)
@@ -116,6 +128,18 @@ def read_data(vocal_name):
         cutoff_points.append(spectral_data.shape[0])
 
         frequency.extend(read_frequency)
+        file_count += 1
+
+        if gui_screen is not None:
+            if gui_screen.kill_signal:
+                gui_screen.ids.dataset_progress_status.text = "Data processing cancelled!"
+                gui_screen.ids.dataset_progress_file.text = "Press 'Finish' to return back to menu"
+                gui_screen.ids.dataset_finish_button.disabled = False
+                gui_screen.ids.dataset_cancel_button.disabled = True
+                sys.exit()
+            progress = int((file_count/total_files)*100)
+            gui_screen.ids.dataset_progress_bar.value = progress
+            gui_screen.ids.dataset_progress_value.text = f'{progress}% Complete'
 
     cutoff_points = np.asarray(cutoff_points)
     frequency = np.asarray(frequency)
@@ -123,25 +147,31 @@ def read_data(vocal_name):
 
 
 # Read the training data
-def read_training_data(vocal_name='', load=False):
+def read_training_data(data_dir, vocal_name='', index_name="index.xlsx", gui_screen= None, load=False):
 
     if not load:
-        spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(vocal_name)
+        spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(data_dir, index_name,
+                                                                                        gui_screen)
 
         data = [spectral_data, aperiodic_data, label_data, cutoff_points, frequency]
 
         spectral_data, aperiodic_data, label_data, column_list, frequency = process_and_save(data, vocal_name)
+
+        if gui_screen is not None:
+
+            gui_screen.ids.dataset_progress_status.text = "Data processing complete!"
+            gui_screen.ids.dataset_progress_file.text = "Press 'Finish' to return back to menu"
+            gui_screen.ids.dataset_finish_button.disabled = False
+            gui_screen.ids.dataset_cancel_button.disabled = True
     else:
         spectral_data, aperiodic_data, label_data, cutoff_points, frequency = load_training_data(vocal_name)
 
     return spectral_data, aperiodic_data, label_data, cutoff_points, frequency
 
 
-def read_test_data(trained_vocal_name, f_data, compare=False):
+def read_test_data(trained_vocal_name, f_data, compare=False, note_file=None, index_loc="Dataset/Test"):
 
-    vocal_name = "Test"
-
-    spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(vocal_name)
+    spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(index_loc)
 
     data = [spectral_data, aperiodic_data, label_data, cutoff_points, frequency]
 
@@ -150,7 +180,7 @@ def read_test_data(trained_vocal_name, f_data, compare=False):
 
     label_data = match_input_columns(column_list, label_data)
 
-    f_label_data = extract_f_labels(frequency, f_data, label_data)
+    f_label_data = extract_f_labels(frequency, f_data, label_data, note_file=note_file)
 
     if compare:
         return spectral_data, aperiodic_data, label_data, frequency
@@ -167,3 +197,30 @@ def add_frequency_data(label_data, frequency):
     label_data = np.concatenate([frequency_data, label_data], axis=1)
 
     return label_data
+
+
+def read_notes(note_index, audio_length):
+
+    sound_index = pd.read_excel(note_index, header=None, index_col=False)
+
+    note_align = list(sound_index.itertuples())
+
+    step = params.frame_period / 1000
+    note_position = 0
+    note_array = []
+    x = 0
+
+    while x < audio_length:
+        if note_align[note_position][1] <= x * step:
+            if note_align[note_position][2] > x * step:
+                note_array.append(note_align[note_position][3])
+                x = x + 1
+            elif note_position + 1 < len(note_align):
+                note_position = note_position + 1
+            else:
+                x = x + 1
+                note_array.append(note_align[note_position][3])
+        else:
+            note_array.append("N")
+            x = x + 1
+    return note_array

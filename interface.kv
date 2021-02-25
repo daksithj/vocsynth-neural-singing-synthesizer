@@ -1,0 +1,1031 @@
+#: import utils kivy.utils
+#: import Factory kivy.factory.Factory
+
+WindowManager:
+    StartWindow:
+    TrainWindow:
+    DatasetWindow:
+    DatasetVerifyWindow:
+    DatasetPendingWindow:
+    TrainModelWindow:
+    TrainingPendingWindow:
+    GenerateWindow:
+    GenerateVerifyWindow:
+    GeneratePendingWindow:
+
+<StartWindow>
+    name:"start_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Image:
+            source: 'Resources/app_logo.png'
+            size_hint: 0.25, 0.25
+            pos_hint: {"center_x":0.5, "center_y": 0.80}
+
+        Label:
+            text: "Welcome to VocSynth"
+            font_size: 32
+            bold: True
+            pos_hint: {"center_x":0.5, "center_y": 0.60}
+
+        Label:
+            text: "Please select mode"
+            font_size: 20
+            valign: 'top'
+            pos_hint: {"center_x":0.5, "center_y": 0.48}
+
+        Button:
+            size_hint: 0.4, 0.3
+            pos_hint: {"center_x":0.30, "center_y": 0.25}
+            background_normal: 'Resources/train_button_dark.png'
+            background_down: 'Resources/train_button_light.png'
+            on_release: root.on_train()
+
+        Button:
+            size_hint: 0.4, 0.3
+            pos_hint: {"center_x":0.70, "center_y": 0.25}
+            background_normal: 'Resources/generate_button_dark.png'
+            background_down: 'Resources/generate_button_light.png'
+            on_release: root.on_generate()
+
+<TrainWindow>
+    name:"train_window"
+    id: train_window
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Image:
+            source: 'Resources/app_logo.png'
+            size_hint: 0.25, 0.25
+            pos_hint: {"center_x":0.5, "center_y": 0.80}
+
+        Label:
+            text: "Welcome to VocSynth"
+            font_size: 32
+            bold: True
+            pos_hint: {"center_x":0.5, "center_y": 0.60}
+
+        Button:
+            #text: "Go back"
+            size_hint: (0.12, 0.11)
+            background_normal: 'Resources/back_button_dark.png'
+            background_down: 'Resources/back_button_light.png'
+            pos_hint: {"right":0.26,"center_y": 0.50}
+            on_release:
+                app.root.current = "start_window"
+
+        Label:
+            text: "Select option"
+            font_size: 20
+            valign: 'top'
+            pos_hint: {"center_x":0.5, "center_y": 0.48}
+
+        Button:
+            size_hint: 0.4, 0.3
+            pos_hint: {"center_x":0.30, "center_y": 0.25}
+            background_normal: 'Resources/new_dataset_dark.png'
+            background_down: 'Resources/new_dataset_light.png'
+            on_release: train_window.open_dataset()
+
+        Button:
+            size_hint: 0.4, 0.3
+            pos_hint: {"center_x":0.70, "center_y": 0.25}
+            background_normal: 'Resources/new_model_dark.png'
+            background_down: 'Resources/new_model_light.png'
+            on_release: root.open_train()
+
+<DatasetWindow>
+    id: dataset_window
+    name:"dataset_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Creating new dataset"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.85}
+
+        Label:
+            text: "Select the index file of the data set"
+            font_size: 16
+            pos_hint: {"x":-0.3, "center_y": 0.75}
+
+        BoxLayout:
+            pos_hint: {"x":0.1, "top": 0.70}
+            size_hint: (0.8, 0.5)
+            orientation: 'vertical'
+
+            Spinner:
+                id: index_file_chooser_drive
+                text: 'Choose drive'
+                size_hint: None, None
+                size: 822, 30
+                sync_height: True
+                on_press: dataset_window.update_drives()
+                on_text: root.update_file_path_dir()
+
+            FileChooserListView:
+                id: index_file_chooser
+                path: '.'
+                filters: ['*.xlsx']
+                on_selection: root.on_select_file(self.selection)
+
+        Label:
+            text: "Selected file:"
+            pos_hint: {"x":-0.35,"center_y": 0.16}
+            font_size: 16
+
+        TextInput:
+            id: dataset_selected_file
+            text: ""
+            disabled: True
+            size_hint: (0.7, 0.04)
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"right":0.9,"y": 0.138}
+            halign: 'left'
+            font_size: 14
+
+        Label:
+            id: dataset_wrong_file
+            text: ""
+            pos_hint: {"x":-0.210,"center_y": 0.11}
+            color: (0.7, 0, 0, 0.9)
+            font_size: 14
+
+        Button:
+            text: 'Submit index file'
+            on_release:dataset_window.on_submit_file()
+            size_hint: (0.2, 0.04)
+            pos_hint: {"right":0.9,"y": 0.07}
+
+        Button:
+            text: 'Go back'
+            on_release:dataset_window.on_back()
+            size_hint: (0.08, 0.04)
+            pos_hint: {"right":0.17,"center_y": 0.85}
+
+<DatasetVerifyWindow>
+    id: dataset_verify_window
+    name:"dataset_verify_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Verify Dataset Creation"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.85}
+
+        Label:
+            text: "Successfully verified the index file and data!"
+            font_size: 20
+            pos_hint: {"x":-0.2, "center_y": 0.65}
+        Label:
+            text: "Dataset location: "
+            font_size: 16
+            pos_hint: {"x":-0.33, "center_y": 0.54}
+
+        TextInput:
+            id: dataset_verify_location
+            disabled: True
+            size_hint: (0.67, 0.04)
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"right":0.91, "center_y": 0.54}
+            halign: 'left'
+            font_size: 14
+
+        Label:
+            text: "Number of audio files detected: "
+            font_size: 16
+            pos_hint: {"x":-0.28, "center_y": 0.47}
+
+        TextInput:
+            id: dataset_verify_count
+            disabled: True
+            size_hint: (0.576, 0.04)
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"right":0.91, "center_y": 0.47}
+            halign: 'left'
+            font_size: 14
+
+        Label:
+            text: "Enter name for dataset: "
+            font_size: 16
+            pos_hint: {"x":-0.308, "center_y": 0.27}
+
+        TextInput:
+            id: dataset_verify_name
+            size_hint: (0.626, 0.04)
+            multiline: False
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            #background_color: utils.get_color_from_hex('#242629')
+            pos_hint: {"right":0.91, "center_y": 0.27}
+            halign: 'left'
+            font_size: 14
+
+        Label:
+            id: dataset_wrong_file
+            text: ""
+            pos_hint: {"x":0.087,"center_y": 0.18}
+            color: (0.7, 0, 0, 0.9)
+            font_size: 14
+
+        Button:
+            text: 'Start data processing'
+            on_release:dataset_verify_window.start_process()
+            size_hint: (0.2, 0.04)
+            pos_hint: {"right":0.9,"y": 0.16}
+
+        Button:
+            text: 'Go back'
+            on_release:dataset_verify_window.on_back()
+            size_hint: (0.08, 0.04)
+            pos_hint: {"right":0.17,"center_y": 0.85}
+
+<VerifyPopUp@Popup>
+    title:"Overwrite Warning"
+    auto_dismiss: False # If true when clicking outside box the box closes
+    size_hint: (0.4, 0.2)
+    pos_hint: {'x': 0.32, "top": 0.6}
+
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+
+        Label:
+            text: "The entered dataset already exists. Overwrite?"
+            font_size: 16
+
+        FloatLayout:
+
+            Button:
+                text: 'Yes'
+                size_hint: (0.2, 0.7)
+                pos_hint: {"right":0.6,"y": 0.20}
+                on_release: root.overwrite()
+
+            Button:
+                text: 'No'
+                size_hint: (0.2, 0.7)
+                pos_hint: {"right":0.9,"y": 0.20}
+                on_release: root.dismiss()
+
+<DatasetPendingWindow>
+    id: dataset_pending_window
+    name:"dataset_pending_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Verify Dataset Creation"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.85}
+
+        Label:
+            id: dataset_progress_status
+            text: "Please wait until the data set is processed"
+            font_size: 20
+            pos_hint: {"center_x":0.5, "center_y": 0.65}
+
+        Label:
+            id: dataset_progress_value
+            text: "0% Progress"
+            pos_hint: {"center_x":0.5, "center_y": 0.55}
+
+        ProgressBar:
+            id: dataset_progress_bar
+            value: 0
+            min: 0
+            max: 100
+            pos_hint: {'x': 0.1}
+            size_hint: 0.8, 1
+
+        Label:
+            id: dataset_progress_file
+            text: "Processing"
+            pos_hint: {"center_x":0.5, "center_y": 0.45}
+
+        Button:
+            id: dataset_finish_button
+            text: 'Finish'
+            disabled: True
+            on_release: app.root.current = "train_window"
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.9,"y": 0.16}
+
+        Button:
+            id: dataset_cancel_button
+            text: 'Cancel'
+            on_release:dataset_pending_window.cancel_process()
+            background_color: (1, 0, 0, 1)
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.22,"y": 0.16}
+
+<TrainModelWindow>
+    id: train_model_window
+    name:"train_model_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Train model"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.85}
+
+        Spinner:
+            id: dataset_chooser
+            text: 'Choose a dataset'
+            size_hint: None, None
+            pos_hint: {"center_x":0.5, "center_y": 0.70}
+            size: 822, 30
+            sync_height: True
+            on_press: train_model_window.list_data_sets()
+            on_text: root.validate_data()
+
+        Label:
+            text: "Spectral Model"
+            font_size: 18
+            pos_hint: {"center_x":0.20, "center_y": 0.53}
+
+        Label:
+            text: "Train spectral model: "
+            font_size: 16
+            pos_hint: {"center_x":0.15, "center_y": 0.47}
+
+        Switch:
+            id: train_spectral_switch
+            active: False
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.27, "center_y": 0.47}
+            on_active: root.toggle_button('harmonic', *args)
+
+        Button:
+            id: harmonic_param_button
+            text: 'Adjust spectral model parameters'
+            disabled: True
+            size_hint: (0.26, 0.05)
+            pos_hint: {"center_x":0.20, "center_y": 0.39}
+            on_release: root.param_adjust('harmonic')
+
+        Label:
+            text: "Aperiodic Model"
+            font_size: 18
+            pos_hint: {"center_x":0.50, "center_y": 0.53}
+
+        Label:
+            text: "Train aperiodic model: "
+            font_size: 16
+            pos_hint: {"center_x":0.45, "center_y": 0.47}
+
+        Switch:
+            id: train_aperiodic_switch
+            active: False
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.57, "center_y": 0.47}
+            on_active: root.toggle_button('aperiodic', *args)
+        Button:
+            id: aperiodic_param_button
+            text: 'Adjust aperiodic model parameters'
+            disabled: True
+            #on_release: app.root.current = "train_window"
+            size_hint: (0.26, 0.05)
+            pos_hint: {"center_x":0.50, "center_y": 0.39}
+            on_release: root.param_adjust('aperiodic')
+
+        Label:
+            text: "Frequency Model"
+            font_size: 18
+            pos_hint: {"center_x":0.80, "center_y": 0.53}
+
+        Label:
+            text: "Train frequency model: "
+            font_size: 16
+            pos_hint: {"center_x":0.75, "center_y": 0.47}
+
+        Switch:
+            id: train_frequency_switch
+            active: False
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.87, "center_y": 0.47}
+            on_active: root.toggle_button('frequency', *args)
+
+        Button:
+            id: frequency_param_button
+            text: 'Adjust frequency model parameters'
+            disabled: True
+            #on_release: app.root.current = "train_window"
+            size_hint: (0.26, 0.05)
+            pos_hint: {"center_x":0.80, "center_y": 0.39}
+            on_release: root.param_adjust('frequency')
+
+        Button:
+            id: start_train_button
+            disabled: True
+            text: 'Start training new model'
+            on_release:root.on_submit()
+            size_hint: (0.2, 0.04)
+            pos_hint: {"right":0.9,"y": 0.10}
+
+        Button:
+            id: cont_train_button
+            disabled: True
+            text: 'Continue training existing model'
+            on_release:root.on_submit()
+            size_hint: (0.25, 0.04)
+            pos_hint: {"right":0.65,"y": 0.10}
+
+        Button:
+            text: 'Go back'
+            on_release:root.go_back()
+            size_hint: (0.08, 0.04)
+            pos_hint: {"right":0.17,"center_y": 0.85}
+
+<ModelParamPopUp@Popup>
+    title:""
+    auto_dismiss: False # If true when clicking outside box the box closes
+    size_hint: (0.3, 0.65)
+    pos_hint: {'center_x': 0.5, "center_y": 0.5}
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Levels: "
+            font_size: 16
+            pos_hint: {"center_x":0.28, "center_y": 0.82}
+
+        TextInput:
+            id: param_levels
+            font_size: 14
+            pos_hint: {"center_x":0.71, "center_y": 0.82}
+            size_hint: (0.30, 0.07)
+            halign:'right'
+            on_text: root.check_value(self.text, 'int', 1, 100)
+
+        Label:
+            text: "Blocks: "
+            font_size: 16
+            pos_hint: {"center_x":0.28, "center_y": 0.72}
+
+        TextInput:
+            id: param_blocks
+            font_size: 14
+            pos_hint: {"center_x":0.71, "center_y": 0.72}
+            size_hint: (0.30, 0.07)
+            halign:'right'
+            on_text: root.check_value(self.text, 'int', 1, 100)
+
+        Label:
+            text: "Epochs: "
+            font_size: 16
+            pos_hint: {"center_x":0.29, "center_y": 0.62}
+
+
+        TextInput:
+            id: param_epochs
+            font_size: 14
+            pos_hint: {"center_x":0.71, "center_y": 0.62}
+            size_hint: (0.30, 0.07)
+            halign:'right'
+            on_text: root.check_value(self.text, 'int', 1, 10000)
+
+        Label:
+            text: "L2 decay: "
+            font_size: 16
+            pos_hint: {"center_x":0.30, "center_y": 0.52}
+
+        TextInput:
+            id: param_l2
+            font_size: 14
+            pos_hint: {"center_x":0.71, "center_y": 0.52}
+            size_hint: (0.30, 0.07)
+            halign:'right'
+            on_text: root.check_value(self.text, 'float', 0.00000001, 1.0)
+
+        Label:
+            text: "Learn rate: "
+            font_size: 16
+            pos_hint: {"center_x":0.31, "center_y": 0.42}
+
+        TextInput:
+            id: param_lr
+            font_size: 14
+            pos_hint: {"center_x":0.71, "center_y": 0.42}
+            size_hint: (0.30, 0.07)
+            halign:'right'
+            on_text: root.check_value(self.text, 'float', 0.00000001, 1.0)
+
+        Label:
+            text: "Temp: "
+            font_size: 16
+            pos_hint: {"center_x":0.28, "center_y": 0.32}
+
+        TextInput:
+            id: param_temp
+            font_size: 14
+            pos_hint: {"center_x":0.71, "center_y": 0.32}
+            size_hint: (0.30, 0.07)
+            halign:'right'
+            on_text: root.check_value(self.text, 'float', 0.001, 0.9)
+
+        Button:
+            id: param_confirm_button
+            disabled: False
+            text: 'Confirm'
+            on_release:root.on_submit()
+            size_hint: (0.30, 0.07)
+            pos_hint: {"center_x":0.75, "center_y": 0.12}
+
+        Button:
+            id: param_cancel_button
+            disabled: False
+            text: 'Cancel'
+            on_release:root.dismiss()
+            size_hint: (0.30, 0.07)
+            pos_hint: {"center_x":0.25, "center_y": 0.12}
+
+<TrainingPendingWindow>
+    id: dataset_pending_window
+    name:"train_pending_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Training Model"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.85}
+
+        Label:
+            id: train_progress_state
+            text: "Please wait until the model is trained"
+            font_size: 20
+            pos_hint: {"center_x":0.5, "center_y": 0.70}
+
+        Label:
+            id: train_progress_value
+            text: "Epochs:"
+            pos_hint: {"center_x":0.5, "center_y": 0.46}
+
+        ProgressBar:
+            id: train_progress_bar
+            value: 0
+            min: 0
+            max: 100
+            pos_hint: {'x': 0.1,}
+            size_hint: 0.8, 1
+
+        ProgressBar:
+            id: train_epoch_bar
+            value: 0
+            min: 0
+            max: 100
+            pos_hint: {'x': 0.1, "center_y": 0.55 }
+            size_hint: 0.8, 1
+
+        Label:
+            id: train_progress_status
+            text: "Starting training"
+            pos_hint: {"center_x":0.5, "center_y": 0.60}
+
+        Button:
+            id: train_finish_button
+            text: 'Finish'
+            disabled: True
+            on_release: root.on_finish()
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.9,"y": 0.16}
+
+        Button:
+            id: train_cancel_button
+            text: 'Cancel'
+            on_release:root.cancel_process()
+            background_color: (1, 0, 0, 1)
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.22,"y": 0.16}
+
+<GenerateWindow>
+    id: generate_window
+    name:"generate_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Generate vocals"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.85}
+
+        Label:
+            text: "Select the index file of the input"
+            font_size: 16
+            pos_hint: {"x":-0.3, "center_y": 0.75}
+
+        BoxLayout:
+            pos_hint: {"x":0.1, "top": 0.70}
+            size_hint: (0.8, 0.5)
+            orientation: 'vertical'
+
+            Spinner:
+                id: index_file_chooser_drive
+                text: 'Choose drive'
+                size_hint: None, None
+                size: 822, 30
+                sync_height: True
+                on_press: root.update_drives()
+                on_text: index_file_chooser.path = self.text
+
+            FileChooserListView:
+                id: index_file_chooser
+                path: '.'
+                filters: ['*.xlsx']
+                on_selection: root.on_select_file(index_file_chooser.selection)
+
+        Label:
+            text: "Selected file:"
+            pos_hint: {"x":-0.35,"center_y": 0.16}
+            font_size: 16
+
+        TextInput:
+            id: gen_selected_file
+            text: ""
+            disabled: True
+            size_hint: (0.7, 0.04)
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"right":0.9,"y": 0.138}
+            halign: 'left'
+            font_size: 14
+
+        Label:
+            id: gen_wrong_file
+            text: ""
+            pos_hint: {"x":-0.210,"center_y": 0.11}
+            color: (0.7, 0, 0, 0.9)
+            font_size: 14
+
+        Button:
+            text: 'Submit index file'
+            on_release:root.on_submit_file()
+            size_hint: (0.2, 0.04)
+            pos_hint: {"right":0.9,"y": 0.07}
+
+        Button:
+            text: 'Go back'
+            on_release:root.on_back()
+            size_hint: (0.08, 0.04)
+            pos_hint: {"right":0.17,"center_y": 0.85}
+
+<GenerateVerifyWindow>
+    id: gen_verify_window
+    name:"generate_verify_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Generate Vocals"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.95}
+
+        Label:
+            text: "Successfully verified the index file and data!"
+            font_size: 20
+            pos_hint: {"x":-0.21, "center_y": 0.75}
+        Label:
+            text: "Input data location: "
+            font_size: 16
+            pos_hint: {"x":-0.33, "center_y": 0.68}
+
+        TextInput:
+            id: gen_verify_location
+            disabled: True
+            size_hint: (0.67, 0.04)
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"right":0.91, "center_y": 0.68}
+            halign: 'left'
+            font_size: 14
+
+        Label:
+            text: "Number of audio files detected: "
+            font_size: 16
+            pos_hint: {"x":-0.29, "center_y": 0.63}
+
+        TextInput:
+            id: gen_verify_count
+            disabled: True
+            size_hint: (0.586, 0.04)
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"right":0.91, "center_y": 0.63}
+            halign: 'left'
+            font_size: 14
+
+        Label:
+            text: "Vocal model: "
+            font_size: 16
+            pos_hint: {"x":-0.35, "center_y": 0.55}
+
+        Spinner:
+            id: model_chooser
+            text: 'Choose a model'
+            size_hint: None, None
+            pos_hint: {"center_x":0.5, "center_y": 0.50}
+            size: 822, 30
+            sync_height: True
+            on_press: root.list_data_sets()
+            on_text: root.on_select_model()
+
+        Label:
+            text: "Use frequency model: "
+            font_size: 16
+            pos_hint: {"center_x":0.2, "center_y": 0.40}
+
+        Switch:
+            id: use_frequency_switch
+            active: True
+            disabled: True
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.35, "center_y":0.40}
+            on_active: root.frequency_toggle(*args)
+
+        Label:
+            text: "Use custom notes: "
+            font_size: 16
+            pos_hint: {"center_x":0.19, "center_y": 0.30}
+
+        Switch:
+            id: use_custom_notes
+            active: False
+            disabled: True
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.35, "center_y":0.30}
+            on_active: root.custom_note_toggle(*args)
+
+        Label:
+            text: "Use Reverb: "
+            font_size: 16
+            pos_hint: {"center_x":0.69, "center_y": 0.40}
+
+        Switch:
+            id: use_reverb
+            active: True
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.82, "center_y":0.40}
+            on_active: root.reverb_toggle(*args)
+
+        Label:
+            text: "Reverb amount: "
+            font_size: 16
+            pos_hint: {"center_x":0.70, "center_y": 0.30}
+
+        TextInput:
+            id: reverb_amount
+            size_hint: (0.04, 0.04)
+            text: '30'
+            halign: 'right'
+            multiline: False
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"center_x":0.82, "center_y": 0.30}
+            font_size: 14
+            on_text: root.validate()
+
+        Label:
+            text: "Enter name for output: "
+            font_size: 16
+            pos_hint: {"x":-0.308, "center_y": 0.17}
+
+        TextInput:
+            id: gen_output_name
+            size_hint: (0.626, 0.04)
+            multiline: False
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"right":0.91, "center_y": 0.17}
+            halign: 'left'
+            font_size: 14
+            on_text: root.validate()
+
+        Button:
+            id: start_gen_button
+            text: 'Start generating'
+            disabled: True
+            on_release:root.on_submit()
+            size_hint: (0.2, 0.04)
+            pos_hint: {"right":0.9,"y": 0.06}
+
+        Button:
+            text: 'Go back'
+            on_release:root.on_back()
+            size_hint: (0.08, 0.04)
+            pos_hint: {"right":0.17,"center_y": 0.85}
+
+<GeneratePendingWindow>
+    id: gen_pending_window
+    name:"generate_pending_window"
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#242629')
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    FloatLayout:
+        size: root.width, root.height
+        spacing: 10
+        padding: 20
+
+        Label:
+            text: "Training Model"
+            font_size: 24
+            pos_hint: {"center_x":0.5, "center_y": 0.85}
+
+        Label:
+            id: gen_progress_state
+            text: "Starting vocal generation"
+            font_size: 20
+            pos_hint: {"center_x":0.5, "center_y": 0.70}
+
+        Label:
+            id: f_progress_value
+            text: "Please wait for Frequency generation"
+            pos_hint: {"center_x":0.5, "center_y": 0.60}
+
+        ProgressBar:
+            id: f_progress_bar
+            value: 0
+            min: 0
+            max: 100
+            pos_hint: {'x': 0.1, "center_y": 0.56}
+            size_hint: 0.8, 1
+
+        Label:
+            id: s_progress_value
+            text: "Please wait for Spectral Envelope generation"
+            pos_hint: {"center_x":0.5, "center_y": 0.52}
+
+        ProgressBar:
+            id: s_progress_bar
+            value: 0
+            min: 0
+            max: 100
+            pos_hint: {'x': 0.1, "center_y": 0.48}
+            size_hint: 0.8, 1
+
+        Label:
+            id: a_progress_value
+            text: "Please wait for Aperiodic Envelope generation"
+            pos_hint: {"center_x":0.5, "center_y": 0.44}
+
+        ProgressBar:
+            id: a_progress_bar
+            value: 0
+            min: 0
+            max: 100
+            pos_hint: {'x': 0.1, "center_y": 0.40}
+            size_hint: 0.8, 1
+
+        Label:
+            id: audio_ready
+            text: ""
+            pos_hint: {"center_x":0.5, "center_y": 0.33}
+
+        Slider:
+            id: audio_slider
+            disabled: True
+            min:0
+            size_hint: (0.82, 0.05)
+            pos_hint: {"center_x":0.5,"y": 0.25}
+
+        Button:
+            id: audio_play_button
+            text: 'Play'
+            disabled: True
+            on_release: root.play_audio()
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.22,"y": 0.18}
+
+        Button:
+            id: audio_stop_button
+            text: 'Stop'
+            disabled: True
+            on_release: root.stop_audio(None)
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.39,"y": 0.18}
+
+        Button:
+            id: gen_finish_button
+            text: 'Finish'
+            disabled: True
+            on_release: root.on_finish()
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.9,"y": 0.06}
+
+        Button:
+            id: gen_cancel_button
+            text: 'Cancel'
+            on_release:root.cancel_process()
+            background_color: (1, 0, 0, 1)
+            size_hint: (0.12, 0.05)
+            pos_hint: {"right":0.22,"y": 0.06}
