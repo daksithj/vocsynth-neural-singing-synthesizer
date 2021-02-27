@@ -1,0 +1,14 @@
+Keras == 2.4.3
+Kivy == 2.0.0
+SoundFile == 0.10.3.post1
+azapi == 3.0.6
+librosa == 0.8.0
+noisereduce == 1.1.0
+numpy == 1.18.2
+pandas == 1.1.2
+pysndfx == 0.3.6
+pysptk == 0.1.18
+pywin32 == 300
+pyworld == 0.2.8
+tensorflow_gpu == 2.3.1
+tqdm == 4.50.2
