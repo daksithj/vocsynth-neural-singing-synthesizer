@@ -20,11 +20,9 @@ if __name__ == '__main__':
 
     sp_train = params.sp_train
     sp_cont = params.sp_cont
-    sp_use = params.sp_use
 
     ap_train = params.ap_train
     ap_cont = params.ap_cont
-    ap_use = params.ap_use
 
     f_train = params.f_train
     f_cont = params.f_cont

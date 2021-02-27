@@ -4,37 +4,31 @@ parser = argparse.ArgumentParser()
 
 # *********** Main Arguments ****************** #
 # Name of the vocal model
-parser.add_argument("--model_name", type=str, default="Freddy")
+parser.add_argument("--model_name", type=str, default="Model_1")
 
 # Name of the vocal model
-parser.add_argument("--output_name", type=str, default='Freddy-Output')
+parser.add_argument("--output_name", type=str, default='Model_1_output')
 
 # Load the data or read the data
-parser.add_argument("--load_data", type=bool, default=True)
+parser.add_argument("--load_data", type=bool, default=False)
 
 # Train the Spectral model
 parser.add_argument("--sp_train", type=bool, default=True)
 
 # Continue training existing Spectral model (only applies if above is true)
-parser.add_argument("--sp_cont", type=bool, default=True)
-
-# Use harmonic model during inference
-parser.add_argument("--sp_use", type=bool, default=True)
+parser.add_argument("--sp_cont", type=bool, default=False)
 
 # Train the Aperiodic model
-parser.add_argument("--ap_train", type=bool, default=False)
+parser.add_argument("--ap_train", type=bool, default=True)
 
 # Continue training existing Aperiodic model (only applies if above is true)
 parser.add_argument("--ap_cont", type=bool, default=False)
 
-# Use aperiodic model during inference
-parser.add_argument("--ap_use", type=bool, default=True)
-
 # Train the frequency model
-parser.add_argument("--f_train", type=bool, default=False)
+parser.add_argument("--f_train", type=bool, default=True)
 
 # Continue training existing Aperiodic model (only applies if above is true)
-parser.add_argument("--f_cont", type=bool, default=True)
+parser.add_argument("--f_cont", type=bool, default=False)
 
 # Use pitch model during inference
 parser.add_argument("--f_use", type=bool, default=True)

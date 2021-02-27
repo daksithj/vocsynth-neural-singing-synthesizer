@@ -773,7 +773,6 @@ class GenerateVerifyWindow(Screen):
             self.manager.add_widget(self.gen_pending_window)
 
         self.manager.current = 'generate_pending_window'
-        self.reset()
         self.gen_pending_window.start_gen(params)
 
     def on_back(self):
@@ -801,7 +800,7 @@ class GeneratePendingWindow(Screen):
         self.ids.s_progress_bar.value = 0
         self.ids.a_progress_value.text = "Please wait for Aperiodic Envelope generation"
         self.ids.a_progress_bar.value = 0
-        self.ids.audio_ready = ''
+        self.ids.audio_ready.text = ''
         self.ids.audio_slider.value = 0
         self.ids.audio_play_button.disabled = True
         self.ids.audio_stop_button.disabled = True
@@ -972,7 +971,8 @@ class WindowManager(ScreenManager):
 class SynthesizeApp(App):
 
     def build(self):
-
+        self.title = 'VocSynth'
+        self.icon = 'Resources/app_logo.png'
         Builder.load_file('interface.kv')
         wm = WindowManager()
         return wm
