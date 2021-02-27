@@ -5,6 +5,7 @@ import librosa
 import pyworld
 import pandas as pd
 import numpy as np
+import azapi
 
 from extract_features import extract_timbre_data, extract_phoneme_data
 from pre_process_data import process_frequency, process_and_save, match_input_columns
@@ -61,6 +62,7 @@ def extract_f_labels(frequency, f_data, label_data, note_file=None):
 
     return f_label_data
 
+
 # Identify the training data
 def extract_transcripts(data_dir, index_name="index.xlsx"):
 
@@ -79,7 +81,11 @@ def extract_transcripts(data_dir, index_name="index.xlsx"):
         lyrics_file_name = transcript_location + str(row[1]) + '.txt'
 
         text_file = open(lyrics_file_name, "w")
-        text_file.write(row[2])
+        if str(row[2]) == '':
+            lyrics = extract_lyrics(row[3], row[4])
+        else:
+            lyrics = row[2]
+        text_file.write(lyrics)
         text_file.close()
 
         file_list.append(str(row[1]))
@@ -147,7 +153,7 @@ def read_data(data_dir, index_name="index.xlsx", gui_screen=None):
 
 
 # Read the training data
-def read_training_data(data_dir, vocal_name='', index_name="index.xlsx", gui_screen= None, load=False):
+def read_training_data(data_dir, vocal_name='', index_name="index.xlsx", gui_screen=None, load=False):
 
     if not load:
         spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(data_dir, index_name,
@@ -224,3 +230,15 @@ def read_notes(note_index, audio_length):
             note_array.append("N")
             x = x + 1
     return note_array
+
+
+def extract_lyrics(artist, title):
+
+    lyric_api = azapi.AZlyrics('google', accuracy=0.5)
+
+    lyric_api.artist = artist
+    lyric_api.title = title
+
+    lyrics = lyric_api.getLyrics(save=False)
+
+    return lyrics
