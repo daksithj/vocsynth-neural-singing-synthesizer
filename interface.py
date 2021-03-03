@@ -549,6 +549,7 @@ class TrainingPendingWindow(Screen):
         self.ids.train_progress_state.text = "Press Finish to return to menu"
 
         self.ids.train_finish_button.disabled = False
+        self.ids.train_cancel_button.disabled = True
 
     def cancel_process(self):
 
@@ -562,6 +563,7 @@ class TrainingPendingWindow(Screen):
         self.ids.train_epoch_bar.value = 0
 
         self.ids.train_finish_button.disabled = True
+        self.ids.train_cancel_button.disabled = False
         self.ids.train_progress_state.text = "Please wait until the model is trained"
         self.ids.train_progress_status.text = "Starting training"
         self.ids.train_progress_value.text = "Epochs: "
@@ -805,6 +807,7 @@ class GeneratePendingWindow(Screen):
         self.ids.audio_play_button.disabled = True
         self.ids.audio_stop_button.disabled = True
         self.ids.gen_finish_button.disabled = True
+        self.ids.gen_cancel_button.disabled = False
         self.kill_signal = False
         self.sound = None
         self.sound_updater = None
@@ -892,6 +895,7 @@ class GeneratePendingWindow(Screen):
             self.ids.gen_progress_state.text = 'Cancelled vocal generation'
 
         self.ids.gen_finish_button.disabled = False
+        self.ids.gen_cancel_button.disabled = True
 
     def audio_ready(self):
 
