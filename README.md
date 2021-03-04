@@ -184,6 +184,11 @@ settings are included below.
   is saved in the ProcessedData folder. Enabling this option makes sure
   that the training data is directly loaded from here instead of reading
   and pre-processing from the beginning.
+- ``--index_name``: The name of the index file used for both training
+  and generation (without the extension).
+- ``--index_type``: The file type (extension) of the index files used.
+  Can be **xlsx, xls or csv**, and both the training and generation
+  index file type must be the same.
 -  ``--sp_train`` ``--ap_train`` ``--f_train`` : Enabling these make sre
    the Spectral, Aperiodic and Frequency models are trained
    respectively. Set any to False if you want to skip training them or

@@ -34,11 +34,13 @@ if __name__ == '__main__':
 
     data_dir = params.data_dir + '/' + model_name
     training_dir = params.training_dir
+    index_name = params.index_name + '.' + params.index_type
     f_index_loc = params.data_dir + '/Test'
 
     spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_training_data(data_dir,
                                                                                              model_name,
-                                                                                             load=load_data)
+                                                                                             load=load_data,
+                                                                                             index_name=index_name)
 
     f_data = FrequencyDataSet(frequency, label_data, cutoff_points)
 
@@ -54,7 +56,8 @@ if __name__ == '__main__':
         singing_model.train_model(APERIODIC_MODE, ap_cont)
 
     label_data, f_label_data, original_frequency = read_test_data(model_name, f_data, de_tune=f_de_tune,
-                                                                  index_loc=f_index_loc, note_file=f_custom)
+                                                                  index_loc=f_index_loc, note_file=f_custom,
+                                                                  index_name=index_name)
 
     if f_use:
         frequency = singing_model.inference(f_label_data, FREQUENCY_MODE)

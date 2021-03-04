@@ -616,7 +616,10 @@ class GenerateWindow(Screen):
 
             else:
                 index_directory = os.path.dirname(index_file)
-                note_file = index_directory + '/' + 'notes.xlsx'
+                index_base = os.path.basename(index_file)
+                file_type = index_base.split('.')[1]
+
+                note_file = index_directory + '/notes.' + str(file_type)
 
                 if os.path.exists(note_file):
                     self.verify_window.custom_notes = True
@@ -896,12 +899,15 @@ class GeneratePendingWindow(Screen):
 
         test_dir = os.path.dirname(self.params['data_location'])
 
+        index_file = os.path.basename(self.params['data_location'])
+
         self.ids.gen_progress_state.text = 'Reading and processing input'
         label_data, f_label_data, original_frequency = read_test_data(model_name,
                                                                       f_data,
                                                                       note_file=self.params['custom_notes'],
                                                                       index_loc=test_dir,
-                                                                      de_tune=self.params['change_key'])
+                                                                      de_tune=self.params['change_key'],
+                                                                      index_name=index_file)
 
         if not self.kill_signal:
 

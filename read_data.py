@@ -78,7 +78,12 @@ def extract_transcripts(data_dir, index_name="index.xlsx"):
     if not os.path.isdir(transcript_location):
         os.mkdir(transcript_location)
 
-    sound_index = pd.read_excel(index_file_location, header=None, index_col=False)
+    index_file_type = index_name.split(".")[1]
+
+    if index_file_type == "xlsx" or index_file_type == "xls":
+        sound_index = pd.read_excel(index_file_location, header=None, index_col=False)
+    else:
+        sound_index = pd.read_csv(index_file_location, header=None, index_col=False, skip_blank_lines=True)
 
     file_list = []
 
@@ -180,9 +185,10 @@ def read_training_data(data_dir, vocal_name='', index_name="index.xlsx", gui_scr
     return spectral_data, aperiodic_data, label_data, cutoff_points, frequency
 
 
-def read_test_data(trained_vocal_name, f_data, compare=False, note_file=False, index_loc="Dataset/Test", de_tune=False):
+def read_test_data(trained_vocal_name, f_data, compare=False, note_file=False, index_loc="Dataset/Test", de_tune=False,
+                   index_name="index.xlsx"):
 
-    spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(index_loc)
+    spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(index_loc, index_name=index_name)
 
     data = [spectral_data, aperiodic_data, label_data, cutoff_points, frequency]
 
@@ -192,7 +198,8 @@ def read_test_data(trained_vocal_name, f_data, compare=False, note_file=False, i
     label_data = match_input_columns(column_list, label_data)
 
     if note_file:
-        note_loc = index_loc + '/notes.xlsx'
+        file_type = index_name.split('.')[1]
+        note_loc = index_loc + '/notes.' + file_type
         if not os.path.exists(note_loc):
             note_loc = None
     else:
@@ -219,7 +226,13 @@ def add_frequency_data(label_data, frequency):
 
 def read_notes(note_index, audio_length):
 
-    sound_index = pd.read_excel(note_index, header=None, index_col=False)
+    file_name = os.path.basename(note_index)
+    file_type = file_name.split('.')[1]
+
+    if file_type == 'xlsx' or file_type == 'xls':
+        sound_index = pd.read_excel(note_index, header=None, index_col=False)
+    else:
+        sound_index = pd.read_csv(note_index, header=None, index_col=False, skip_blank_lines=True)
 
     note_align = list(sound_index.itertuples())
 

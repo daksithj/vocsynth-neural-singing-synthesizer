@@ -155,7 +155,7 @@ WindowManager:
             FileChooserListView:
                 id: index_file_chooser
                 path: '.'
-                filters: ['*.xlsx']
+                filters: ['*.xlsx', '*.csv', '*.xls']
                 on_selection: root.on_select_file(self.selection)
 
         Label:
@@ -721,7 +721,7 @@ WindowManager:
             FileChooserListView:
                 id: index_file_chooser
                 path: '.'
-                filters: ['*.xlsx']
+                filters: ['*.xlsx', '*.csv', '*.xls']
                 on_selection: root.on_select_file(index_file_chooser.selection)
 
         Label:

@@ -51,7 +51,14 @@ class GuiCallBack(Callback):
 def verify_index_file(index_file_location):
 
     try:
-        sound_index = pd.read_excel(index_file_location, header=None, index_col=False)
+        file_base = os.path.basename(index_file_location)
+
+        file_type = file_base.split('.')[1]
+
+        if file_type == "xlsx" or file_type == "xls":
+            sound_index = pd.read_excel(index_file_location, header=None, index_col=False)
+        else:
+            sound_index = pd.read_csv(index_file_location, header=None, index_col=False, skip_blank_lines=True)
 
         directory = os.path.dirname(index_file_location)
 

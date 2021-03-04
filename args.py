@@ -12,6 +12,12 @@ parser.add_argument("--output_name", type=str, default='Model_1_output')
 # Load the data or read the data
 parser.add_argument("--load_data", type=bool, default=False)
 
+# Name of the index file
+parser.add_argument("--index_name", type=str, default='index')
+
+# File type of the index file (xlsx, xls, or csv)
+parser.add_argument("--index_type", type=str, default='xlsx')
+
 # Train the Spectral model
 parser.add_argument("--sp_train", type=bool, default=True)
 
