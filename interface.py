@@ -582,7 +582,7 @@ class GenerateWindow(Screen):
         self.ids.index_file_chooser_drive.text = 'Choose drive'
         self.ids.index_file_chooser.path = '.'
         self.ids.gen_selected_file.text = ""
-        self.ids.gen_wrong_file = ""
+        self.ids.gen_wrong_file.text = ""
 
     def update_drives(self):
 
@@ -924,6 +924,7 @@ class GeneratePendingWindow(Screen):
 
             else:
                 self.ids.f_progress_value.text = 'Skipped Frequency generation'
+                frequency = original_frequency
 
         if not self.kill_signal:
             self.ids.gen_progress_state.text = 'Generating Spectral Envelope'

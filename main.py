@@ -66,6 +66,8 @@ if __name__ == '__main__':
         if f_smooth > 0:
             frequency = smooth_out(original_frequency, frequency, f_smooth)
         label_data = add_frequency_data(label_data, frequency)
+    else:
+        frequency = original_frequency
 
     spectral_output = singing_model.inference(label_data, SPECTRAL_MODE)
 
