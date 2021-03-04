@@ -7,6 +7,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen, RiseInTransition, Scre
 from kivy.uix.popup import Popup
 from interface_tools import verify_index_file, check_dataset_exist
 from read_data import read_test_data, read_training_data, add_frequency_data
+from frequency_tools import smooth_out
 from data_handler import FrequencyDataSet
 from synthesize import construct_audio, decode_envelopes
 from model import SingingModel
@@ -524,21 +525,21 @@ class TrainingPendingWindow(Screen):
             self.ids.train_progress_bar.value = 0
             self.ids.train_epoch_bar.value = 0
             self.ids.train_progress_state.text = 'Training Frequency Model'
-            singing_model.train_model(FREQUENCY_MODE, self.params['f_cont'])
+            singing_model.train_model(FREQUENCY_MODE, load=self.params['f_cont'])
 
         if self.params['train_s']:
             self.kill_signal = False
             self.ids.train_progress_bar.value = 0
             self.ids.train_epoch_bar.value = 0
             self.ids.train_progress_state.text = 'Training Spectral Model'
-            singing_model.train_model(SPECTRAL_MODE, self.params['h_cont'])
+            singing_model.train_model(SPECTRAL_MODE, load=self.params['h_cont'])
 
         if self.params['train_a']:
             self.kill_signal = False
             self.ids.train_progress_bar.value = 0
             self.ids.train_epoch_bar.value = 0
             self.ids.train_progress_state.text = 'Training Aperiodic Model'
-            singing_model.train_model(APERIODIC_MODE, self.params['a_cont'])
+            singing_model.train_model(APERIODIC_MODE, load=self.params['a_cont'])
 
         if self.kill_signal:
             self.ids.train_progress_state.text = "Training Cancelled!"
@@ -640,6 +641,8 @@ class GenerateVerifyWindow(Screen):
         self.m_param = parser.parse_args()
         self.custom_notes = False
         self.use_custom_notes = False
+        self.use_change_key = True
+        self.smoothing = parser.parse_args().f_smooth
         self.reverb = parser.parse_args().reverb
         self.gen_pending_window = GeneratePendingWindow()
 
@@ -651,6 +654,15 @@ class GenerateVerifyWindow(Screen):
 
         self.ids.use_custom_notes.disabled = True
         self.ids.use_custom_notes.active = False
+
+        self.ids.use_change_key.disabled = True
+        self.ids.use_change_key.active = True
+
+        self.ids.use_smoothing.disabled = True
+        self.ids.use_smoothing.active = True
+
+        self.ids.smoothing_amount.disabled = True
+        self.ids.smoothing_amount.text = str(parser.parse_args().f_smooth)
 
         self.ids.use_reverb.active = True
         self.ids.reverb_amount.text = str(parser.parse_args().reverb)
@@ -689,11 +701,32 @@ class GenerateVerifyWindow(Screen):
             if self.custom_notes:
                 self.ids.use_custom_notes.disabled = False
 
+            self.ids.use_change_key.disabled = False
+            self.ids.use_smoothing.disabled = False
+            self.ids.smoothing_amount.disabled = False
+
         else:
             self.ids.use_frequency_switch.disabled = True
             self.ids.use_frequency_switch.active = False
+            self.use_f = False
+
             self.ids.use_custom_notes.disabled = True
-            self.ids.use_custom_notes.active = False
+
+            self.ids.use_change_key.disabled = True
+
+            self.ids.use_smoothing.disabled = True
+
+            self.ids.smoothing_amount.disabled = True
+
+        self.ids.use_custom_notes.active = False
+        self.use_custom_notes = False
+
+        self.ids.use_change_key.active = True
+        self.use_change_key = True
+
+        self.ids.use_smoothing.active = True
+        self.ids.smoothing_amount.text = str(parser.parse_args().f_smooth)
+        self.smoothing = parser.parse_args().f_smooth
 
         self.validate()
 
@@ -731,6 +764,26 @@ class GenerateVerifyWindow(Screen):
         else:
             self.use_custom_notes = False
 
+    def change_key_toggle(self, _, value):
+
+        if value:
+            self.use_change_key = True
+
+        else:
+            self.use_change_key = False
+
+    def smoothing_toggle(self, _, value):
+
+        if value:
+            self.ids.smoothing_amount.disabled = False
+            self.ids.smoothing_amount.text = str(parser.parse_args().f_smooth)
+            self.smoothing = parser.parse_args().f_smooth
+
+        else:
+            self.ids.smoothing_amount.disabled = True
+            self.ids.smoothing_amount.text = '0'
+            self.smoothing = 0
+
     def validate(self):
 
         invalid_choices = ['', 'Choose a model']
@@ -755,6 +808,18 @@ class GenerateVerifyWindow(Screen):
             except ValueError:
                 self.ids.start_gen_button.disabled = True
 
+        if self.smoothing != 0:
+            try:
+                data = int(self.ids.smoothing_amount.text)
+
+                if 0 <= data < 1000:
+                    self.ids.start_gen_button.disabled = False
+                    self.smoothing = data
+                else:
+                    self.ids.start_gen_button.disabled = True
+            except ValueError:
+                self.ids.start_gen_button.disabled = True
+
         else:
             self.ids.start_gen_button.disabled = False
 
@@ -764,6 +829,8 @@ class GenerateVerifyWindow(Screen):
             'use_f': self.use_f,
             'reverb': self.reverb,
             'custom_notes': self.use_custom_notes,
+            'change_key': self.use_change_key,
+            'smoothing': self.smoothing,
             'model_name': self.ids.model_chooser.text,
             'output_name': self.ids.gen_output_name.text,
             'data_location': self.ids.gen_verify_location.text
@@ -841,14 +908,12 @@ class GeneratePendingWindow(Screen):
 
         test_dir = os.path.dirname(self.params['data_location'])
 
-        if self.params['custom_notes']:
-            notes = test_dir + '/' + 'notes.xlsx'
-
-        else:
-            notes = None
-
         self.ids.gen_progress_state.text = 'Reading and processing input'
-        label_data, f_label_data, frequency = read_test_data(model_name, f_data, note_file=notes, index_loc=test_dir)
+        label_data, f_label_data, original_frequency = read_test_data(model_name,
+                                                                      f_data,
+                                                                      note_file=self.params['custom_notes'],
+                                                                      index_loc=test_dir,
+                                                                      de_tune=self.params['change_key'])
 
         if not self.kill_signal:
 
@@ -859,6 +924,8 @@ class GeneratePendingWindow(Screen):
                 if not self.kill_signal:
                     frequency = np.squeeze(frequency)
                     frequency = f_data.decode_frequency(frequency)
+                    if self.params['smoothing'] > 0:
+                        frequency = smooth_out(original_frequency, frequency, self.params['smoothing'])
                     label_data = add_frequency_data(label_data, frequency)
 
             else:

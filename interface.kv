@@ -842,13 +842,13 @@ WindowManager:
             disabled: True
             font_size: 10
             size_hint: (0.22, 0.02)
-            pos_hint: {"center_x":0.35, "center_y":0.40}
+            pos_hint: {"center_x":0.36, "center_y":0.40}
             on_active: root.frequency_toggle(*args)
 
         Label:
             text: "Use custom notes: "
             font_size: 16
-            pos_hint: {"center_x":0.19, "center_y": 0.30}
+            pos_hint: {"center_x":0.19, "center_y": 0.35}
 
         Switch:
             id: use_custom_notes
@@ -856,8 +856,50 @@ WindowManager:
             disabled: True
             font_size: 10
             size_hint: (0.22, 0.02)
-            pos_hint: {"center_x":0.35, "center_y":0.30}
+            pos_hint: {"center_x":0.36, "center_y":0.35}
             on_active: root.custom_note_toggle(*args)
+
+        Label:
+            text: "Change to suitable key: "
+            font_size: 16
+            pos_hint: {"center_x":0.205, "center_y": 0.30}
+
+        Switch:
+            id: use_change_key
+            active: False
+            disabled: True
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.36, "center_y":0.30}
+            on_active: root.change_key_toggle(*args)
+
+        Label:
+            text: "Use frequency smoothing: "
+            font_size: 16
+            pos_hint: {"center_x":0.216, "center_y": 0.25}
+
+        Switch:
+            id: use_smoothing
+            active: True
+            disabled: True
+            font_size: 10
+            size_hint: (0.22, 0.02)
+            pos_hint: {"center_x":0.36, "center_y":0.25}
+            on_active: root.smoothing_toggle(*args)
+
+        TextInput:
+            id: smoothing_amount
+            size_hint: (0.04, 0.04)
+            text: '20'
+            halign: 'right'
+            disabled: True
+            multiline: False
+            foreground_color: (1, 1, 1, 1)
+            background_normal: ''
+            background_color: utils.get_color_from_hex('#60686e')
+            pos_hint: {"center_x":0.44, "center_y": 0.25}
+            font_size: 14
+            on_text: root.validate()
 
         Label:
             text: "Use Reverb: "

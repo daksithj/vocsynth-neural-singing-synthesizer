@@ -3,6 +3,7 @@ import numpy as np
 from synthesize import construct_audio, decode_envelopes
 from read_data import read_test_data, read_training_data, add_frequency_data
 from data_handler import FrequencyDataSet
+from frequency_tools import smooth_out
 from args import parser
 
 params = parser.parse_args()
@@ -27,9 +28,13 @@ if __name__ == '__main__':
     f_train = params.f_train
     f_cont = params.f_cont
     f_use = params.f_use
+    f_custom = params.f_custom
+    f_de_tune = params.f_de_tune
+    f_smooth = params.f_smooth
 
     data_dir = params.data_dir + '/' + model_name
     training_dir = params.training_dir
+    f_index_loc = params.data_dir + '/Test'
 
     spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_training_data(data_dir,
                                                                                              model_name,
@@ -48,14 +53,15 @@ if __name__ == '__main__':
     if ap_train:
         singing_model.train_model(APERIODIC_MODE, ap_cont)
 
-    label_data, f_label_data, frequency = read_test_data(model_name, f_data)
+    label_data, f_label_data, original_frequency = read_test_data(model_name, f_data, de_tune=f_de_tune,
+                                                                  index_loc=f_index_loc, note_file=f_custom)
 
     if f_use:
         frequency = singing_model.inference(f_label_data, FREQUENCY_MODE)
         frequency = np.squeeze(frequency)
-
         frequency = f_data.decode_frequency(frequency)
-
+        if f_smooth > 0:
+            frequency = smooth_out(original_frequency, frequency, f_smooth)
         label_data = add_frequency_data(label_data, frequency)
 
     spectral_output = singing_model.inference(label_data, SPECTRAL_MODE)

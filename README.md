@@ -193,11 +193,23 @@ settings are included below.
    these to True, we can continue training them further. If set to
    False, the already existing Models will be overwritten and trained
    from the beginning.
--  ``--f_use``: During generating, using the frequency model and its
+-  ``--f_use``: During generation, using the frequency model and its
    output can be skipped. The direct frequency from the input can be
    used if this option is set to False. However for more matching and
    natural results it is recommended to use the frequency model as well
    during inference.
+-  ``--f_custom``: During generation, using the frequency model custom
+   musical notes can be provided to change the tune of the output (refer
+   to the README in the ***Output*** folder for more details).
+-  ``--f_de_tune``: Each vocal model trained has a vocal range (pitch
+   range) depending on the singer or the available training data. When
+   this option is enabled the key (pitch) of the output is changed to
+   suit the model better.
+-  ``--f_smooth``: During generation, using the frequency model output
+   may have a noisy/variable output. By smoothing the output noise can
+   be reduced to match the input notes (frequency of the notes). Set the
+   value to 0 for no smoothing, and a value greater than 1 for smoothing
+   (higher the value, more smoothing carried out).
 -  All the other options are related to th pre-processing and the model.
    Changing these from the default value may cause some unexpected
    behaviour.

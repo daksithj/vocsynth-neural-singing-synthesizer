@@ -46,8 +46,8 @@ class SingingModel:
             self.a_parser = a_parser
             self.f_parser = f_parser
 
-            self.train_gui = train_gui
-            self.gen_gui = gen_gui
+        self.train_gui = train_gui
+        self.gen_gui = gen_gui
 
         model_dir = self.m_parser.model_dir
 
@@ -354,5 +354,7 @@ class SingingModel:
                     return None
                 progress_bar.value = int((i / audio_length) * 100)
                 progress_status.text = f'{model_status_type} progress: {progress_bar.value}%'
-        progress_status.text = f'{model_status_type} generation complete'
+
+        if self.gen_gui is not None:
+            progress_status.text = f'{model_status_type} generation complete'
         return output

@@ -1,8 +1,9 @@
 from tensorflow.keras.utils import Sequence
 import pandas as pd
 import numpy as np
-from math import log2
 from random import randint
+
+from frequency_tools import extract_notes, shift_pitch, get_note_data
 
 
 class HarmonicDataSet(Sequence):
@@ -129,18 +130,17 @@ class FrequencyDataSet(Sequence):
         self.data_length = data_length
         self.noise = noise
 
-        self.glob_min = 24
-        self.glob_max = 96
-
         label_data = label_data[:, 256:]
-        notes_data_set, self.min_p, self.max_p = self.extract_notes(frequency_data_set)
+        notes_data_set, self.min_p, self.max_p = extract_notes(frequency_data_set)
+
+        self.mean_p = int(np.round(np.mean(notes_data_set[notes_data_set > -1])))
 
         frequency_data_set = np.expand_dims(frequency_data_set, axis=1)
 
         self.min_f = np.min(frequency_data_set)
         self.max_f = np.max(frequency_data_set)
 
-        notes_data_set, note_timings = self.get_note_data(notes_data_set)
+        notes_data_set, note_timings = get_note_data(notes_data_set)
         label_data = np.concatenate([note_timings, label_data], axis=1)
 
         frequency_files = []
@@ -209,19 +209,19 @@ class FrequencyDataSet(Sequence):
 
         return [model_input, np.array(label_input)], model_target
 
-    def shift_data(self, frequency_data, note_data):
-        samp_max = np.max(note_data)
-        if samp_max > -1:
-            samp_min = np.min(note_data[note_data > -1])
-            shift_min = self.min_p - samp_min
-            shift_max = self.max_p - samp_max
+    def shift_data(self, frequency_data, note_data, shift=True):
 
-            p_shift = randint(shift_min, shift_max)
-            note_data = note_data + p_shift
-            note_data[note_data == (p_shift-1)] = -1
+        if shift:
+            samp_max = np.max(note_data)
 
-            f_shift = p_shift / 12
-            frequency_data = frequency_data * pow(2, f_shift)
+            if samp_max > -1:
+                samp_min = np.min(note_data[note_data > -1])
+                shift_min = self.min_p - samp_min
+                shift_max = self.max_p - samp_max
+
+                p_shift = randint(shift_min, shift_max)
+
+                note_data, frequency_data = shift_pitch(note_data, frequency_data, p_shift)
 
         note_data = np.append(note_data, [[[-1, -1, -1]]], axis=1)
         for i in range(self.min_p, self.max_p + 1):
@@ -245,92 +245,15 @@ class FrequencyDataSet(Sequence):
         frequency = (frequency + 0.5) * (self.max_f - self.min_f) + self.min_f
         return frequency
 
-    @staticmethod
-    def extract_notes(f_data):
-        a_4 = 440
-        c_0 = a_4 * pow(2, -4.75)
-        min_freq = 1000
-        max_freq = -1
-        notes = []
-        for freq in f_data:
-            if freq > 0:
-                h = round(12 * log2(freq / c_0))
-                notes.append(h)
-                if h > max_freq:
-                    max_freq = h
-                if h < min_freq:
-                    min_freq = h
-            else:
-                notes.append(-1)
-        notes = np.asarray(notes)
-        return notes, min_freq, max_freq
+    def de_tune(self, notes_data_set, frequency):
 
-    @staticmethod
-    def notes_to_number(n_data):
+        mean_p = int(np.round(np.mean(notes_data_set[notes_data_set > -1])))
 
-        keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-        notes = []
+        pitch_shift = self.mean_p - mean_p
 
-        for key in n_data:
-            if key == 'N':
-                notes.append(-1)
-            else:
-                key = list(key)
-                notes.append(int(key[1])*12 + keys.index(key[0]))
+        notes_data_set, frequency = shift_pitch(notes_data_set, frequency, pitch_shift)
 
-        return notes
-
-    @staticmethod
-    def get_note_data(notes):
-        audio_length = notes.shape[0]
-
-        x = 0
-        timing_array = []
-
-        while x < audio_length:
-            note = notes[x]
-            counter = 0
-            while x + counter < audio_length and notes[x + counter] == note:
-                counter = counter + 1
-            numerator = 1
-            for y in range(counter):
-
-                timing = numerator / counter
-                if timing <= 0.333:
-                    timing_array.append(0)
-                elif timing <= 0.666:
-                    timing_array.append(1)
-                else:
-                    timing_array.append(2)
-                numerator = numerator + 1
-            x = x + counter
-
-        pre_note_array = []
-        post_note_array = []
-        for y in range(audio_length):
-            if y > 0:
-                pre_note_array.append(notes[y - 1])
-            else:
-                pre_note_array.append(-1)
-            if y + 1 < audio_length:
-                post_note_array.append(notes[y + 1])
-            else:
-                post_note_array.append(-1)
-
-        notes = np.asarray(notes)
-        notes = np.expand_dims(notes, axis=1)
-        pre_note_array = np.asarray(pre_note_array)
-        pre_note_array = np.expand_dims(pre_note_array, axis=1)
-        post_note_array = np.asarray(post_note_array)
-        post_note_array = np.expand_dims(post_note_array, axis=1)
-
-        note_data = np.concatenate([notes, pre_note_array, post_note_array], axis=1)
-
-        note_timing_data = pd.DataFrame(timing_array, columns=['Note_timings'])
-        note_timing_data = pd.get_dummies(data=note_timing_data, prefix='Note_timings')
-        note_timings = np.asarray(note_timing_data)
-
-        return note_data, note_timings
+        return notes_data_set, frequency
 
     def __len__(self):
         return self.label_data.shape[0]

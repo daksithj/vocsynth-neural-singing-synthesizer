@@ -9,7 +9,7 @@ import azapi
 
 from extract_features import extract_timbre_data, extract_phoneme_data
 from pre_process_data import process_frequency, process_and_save, match_input_columns
-
+from frequency_tools import extract_notes, notes_to_number, get_note_data, note_to_frequency
 from args import parser
 
 params = parser.parse_args()
@@ -41,26 +41,31 @@ def pre_process(file_name, training_dir):
     return [spectral_data, aperiodic_data, label_data, frequency]
 
 
-def extract_f_labels(frequency, f_data, label_data, note_file=None):
+def extract_f_labels(frequency, f_data, label_data, note_file=None, de_tune=False):
 
     if note_file is None:
-        notes, _, _ = f_data.extract_notes(frequency)
+        notes, _, _ = extract_notes(frequency)
+
+        if de_tune:
+            notes, frequency = f_data.de_tune(notes, frequency)
     else:
         notes = read_notes(note_file, label_data.shape[0])
-        notes = f_data.notes_to_number(notes)
+        notes = notes_to_number(notes)
+        frequency = note_to_frequency(notes)
         notes = np.asarray(notes)
+        frequency = np.asarray(frequency)
 
-    notes, note_timings = f_data.get_note_data(notes)
+    notes, note_timings = get_note_data(notes)
 
     notes = np.expand_dims(notes, axis=0)
-    _, note_data = f_data.shift_data(frequency, notes)
+    _, note_data = f_data.shift_data(frequency, notes, shift=False)
 
     note_data = np.squeeze(note_data, axis=0)
 
     f_label_data = label_data[:, 256:]
     f_label_data = np.concatenate([note_data, note_timings, f_label_data], axis=1)
 
-    return f_label_data
+    return f_label_data, frequency
 
 
 # Identify the training data
@@ -175,7 +180,7 @@ def read_training_data(data_dir, vocal_name='', index_name="index.xlsx", gui_scr
     return spectral_data, aperiodic_data, label_data, cutoff_points, frequency
 
 
-def read_test_data(trained_vocal_name, f_data, compare=False, note_file=None, index_loc="Dataset/Test"):
+def read_test_data(trained_vocal_name, f_data, compare=False, note_file=False, index_loc="Dataset/Test", de_tune=False):
 
     spectral_data, aperiodic_data, label_data, cutoff_points, frequency = read_data(index_loc)
 
@@ -186,7 +191,14 @@ def read_test_data(trained_vocal_name, f_data, compare=False, note_file=None, in
 
     label_data = match_input_columns(column_list, label_data)
 
-    f_label_data = extract_f_labels(frequency, f_data, label_data, note_file=note_file)
+    if note_file:
+        note_loc = index_loc + '/notes.xlsx'
+        if not os.path.exists(note_loc):
+            note_loc = None
+    else:
+        note_loc = None
+
+    f_label_data, frequency = extract_f_labels(frequency, f_data, label_data, note_file=note_loc, de_tune=de_tune)
 
     if compare:
         return spectral_data, aperiodic_data, label_data, frequency

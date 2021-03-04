@@ -33,6 +33,15 @@ parser.add_argument("--f_cont", type=bool, default=False)
 # Use pitch model during inference
 parser.add_argument("--f_use", type=bool, default=True)
 
+# Use custom notes during generation (check README in Dataset folder)
+parser.add_argument("--f_custom", type=bool, default=False)
+
+# During generation, change the key of the song to match the vocal range of the singer
+parser.add_argument("--f_de_tune", type=bool, default=True)
+
+# Smooth factor for the generated frequency (set > 1 for smoothing)
+parser.add_argument("--f_smooth", type=int, default=20)
+
 
 # ************************************************************* #
 #       Below are the model related arguments                   #
