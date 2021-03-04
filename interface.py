@@ -652,17 +652,7 @@ class GenerateVerifyWindow(Screen):
         self.ids.use_frequency_switch.disabled = True
         self.ids.use_frequency_switch.active = True
 
-        self.ids.use_custom_notes.disabled = True
-        self.ids.use_custom_notes.active = False
-
-        self.ids.use_change_key.disabled = True
-        self.ids.use_change_key.active = True
-
-        self.ids.use_smoothing.disabled = True
-        self.ids.use_smoothing.active = True
-
-        self.ids.smoothing_amount.disabled = True
-        self.ids.smoothing_amount.text = str(parser.parse_args().f_smooth)
+        self.set_frequency_options(True)
 
         self.ids.use_reverb.active = True
         self.ids.reverb_amount.text = str(parser.parse_args().reverb)
@@ -688,35 +678,17 @@ class GenerateVerifyWindow(Screen):
 
         self.ids.model_chooser.values = dir_list
 
-    def on_select_model(self):
+    def set_frequency_options(self, disabled):
 
-        model_name = self.ids.model_chooser.text
-        f_model = parser.parse_args().model_dir + '/' + model_name + '/frequency_model.h5'
+        if self.custom_notes:
+            self.ids.use_custom_notes.disabled = disabled
 
-        if os.path.exists(f_model):
-            self.ids.use_frequency_switch.disabled = False
-            self.ids.use_frequency_switch.active = True
-            self.use_f = True
+        if disabled:
+            self.ids.use_custom_notes.disabled = disabled
 
-            if self.custom_notes:
-                self.ids.use_custom_notes.disabled = False
-
-            self.ids.use_change_key.disabled = False
-            self.ids.use_smoothing.disabled = False
-            self.ids.smoothing_amount.disabled = False
-
-        else:
-            self.ids.use_frequency_switch.disabled = True
-            self.ids.use_frequency_switch.active = False
-            self.use_f = False
-
-            self.ids.use_custom_notes.disabled = True
-
-            self.ids.use_change_key.disabled = True
-
-            self.ids.use_smoothing.disabled = True
-
-            self.ids.smoothing_amount.disabled = True
+        self.ids.use_change_key.disabled = disabled
+        self.ids.use_smoothing.disabled = disabled
+        self.ids.smoothing_amount.disabled = disabled
 
         self.ids.use_custom_notes.active = False
         self.use_custom_notes = False
@@ -727,6 +699,25 @@ class GenerateVerifyWindow(Screen):
         self.ids.use_smoothing.active = True
         self.ids.smoothing_amount.text = str(parser.parse_args().f_smooth)
         self.smoothing = parser.parse_args().f_smooth
+
+    def on_select_model(self):
+
+        model_name = self.ids.model_chooser.text
+        f_model = parser.parse_args().model_dir + '/' + model_name + '/frequency_model.h5'
+
+        if os.path.exists(f_model):
+            self.ids.use_frequency_switch.disabled = False
+            self.ids.use_frequency_switch.active = True
+            self.use_f = True
+
+            self.set_frequency_options(False)
+
+        else:
+            self.ids.use_frequency_switch.disabled = True
+            self.ids.use_frequency_switch.active = False
+            self.use_f = False
+
+            self.set_frequency_options(True)
 
         self.validate()
 
@@ -746,14 +737,11 @@ class GenerateVerifyWindow(Screen):
 
         if value:
             self.use_f = True
-            if self.custom_notes:
-                self.ids.use_custom_notes.disabled = False
+            self.set_frequency_options(False)
 
         else:
             self.use_f = False
-            self.ids.use_custom_notes.disabled = True
-            self.ids.use_custom_notes.active = False
-            self.use_custom_notes = False
+            self.set_frequency_options(True)
 
     def custom_note_toggle(self, _, value):
 
