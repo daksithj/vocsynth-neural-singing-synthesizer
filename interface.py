@@ -13,7 +13,7 @@ from synthesize import construct_audio, decode_envelopes
 from model import SingingModel
 from args import parser, h_parser, a_parser, f_parser
 from threading import Thread
-import win32api
+import psutil
 import numpy as np
 import os
 
@@ -102,9 +102,13 @@ class DatasetWindow(Screen):
 
     def update_drives(self):
 
-        drives = win32api.GetLogicalDriveStrings()
-        drives = drives.split('\000')[:-1]
-        self.ids.index_file_chooser_drive.values = drives
+        drive_list = []
+        disk_partitions = psutil.disk_partitions(all=True)
+
+        for partition in disk_partitions:
+            drive_list.append(partition.device)
+
+        self.ids.index_file_chooser_drive.values = drive_list
 
     def on_select_file(self, file_name):
 
@@ -586,9 +590,13 @@ class GenerateWindow(Screen):
 
     def update_drives(self):
 
-        drives = win32api.GetLogicalDriveStrings()
-        drives = drives.split('\000')[:-1]
-        self.ids.index_file_chooser_drive.values = drives
+        drive_list = []
+        disk_partitions = psutil.disk_partitions(all=True)
+
+        for partition in disk_partitions:
+            drive_list.append(partition.device)
+
+        self.ids.index_file_chooser_drive.values = drive_list
 
     def on_select_file(self, file_name):
 
